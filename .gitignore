@@ -1,0 +1,19 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor settings
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Temporary test artifacts
+qa-screenshot.png
+
+# Local environment files
+.env
+.env.*
+!.env.example
