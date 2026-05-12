@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page-top: #edf4ff;
+      --page-bottom: #dfe9ff;
+      --glass: rgba(255, 255, 255, 0.2);
+      --glass-strong: rgba(255, 255, 255, 0.34);
+      --glass-border: rgba(255, 255, 255, 0.45);
+      --glass-shadow: 0 24px 80px rgba(52, 84, 147, 0.2);
+      --text: #12304f;
+      --muted: rgba(18, 48, 79, 0.72);
+      --muted-soft: rgba(18, 48, 79, 0.54);
+      --primary: #3177ff;
+      --primary-strong: #245edd;
+      --success: #10b981;
+      --danger: #ef4444;
+      --ring: rgba(49, 119, 255, 0.28);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 28%),
+        radial-gradient(circle at 85% 20%, rgba(121, 179, 255, 0.45), transparent 26%),
+        radial-gradient(circle at 18% 82%, rgba(255, 144, 214, 0.28), transparent 24%),
+        linear-gradient(160deg, var(--page-top) 0%, var(--page-bottom) 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      width: 34rem;
+      height: 34rem;
+      border-radius: 50%;
+      filter: blur(64px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.8;
+    }
+
+    body::before {
+      top: -10rem;
+      right: -6rem;
+      background: rgba(130, 198, 255, 0.42);
+    }
+
+    body::after {
+      bottom: -12rem;
+      left: -10rem;
+      background: rgba(255, 164, 219, 0.34);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    .todo-app {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.12)),
+        rgba(255, 255, 255, 0.12);
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+    }
+
+    .todo-app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.34), transparent 26%),
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.32), transparent 28%);
+      pointer-events: none;
+    }
+
+    .hero,
+    .toolbar,
+    .list-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      display: grid;
+      gap: 22px;
+      padding: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 12px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 8px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+      backdrop-filter: blur(18px);
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #6ee7b7, #10b981);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.5);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.3rem, 5vw, 4.2rem);
+      line-height: 0.98;
+      font-weight: 800;
+      text-wrap: balance;
+    }
+
+    .subtitle {
+      max-width: 44rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stat-pill {
+      display: grid;
+      gap: 4px;
+      min-width: 130px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(18px);
+    }
+
+    .stat-label {
+      color: var(--muted-soft);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      font-size: 1.24rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .task-form,
+    .toolbar,
+    .task-item,
+    .empty-state {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    .task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 26px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+    }
+
+    .task-input,
+    .edit-input {
+      width: 100%;
+      min-height: 58px;
+      padding: 0 18px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.36);
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        background-color 180ms ease,
+        transform 180ms ease;
+    }
+
+    .task-input::placeholder,
+    .edit-input::placeholder {
+      color: rgba(18, 48, 79, 0.48);
+    }
+
+    .task-input:focus,
+    .edit-input:focus {
+      border-color: rgba(49, 119, 255, 0.44);
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 0 0 5px var(--ring);
+    }
+
+    .primary-button,
+    .ghost-button,
+    .icon-button,
+    .filter-button {
+      transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease,
+        opacity 180ms ease;
+    }
+
+    .primary-button:hover,
+    .ghost-button:hover,
+    .icon-button:hover,
+    .filter-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button,
+    .ghost-button,
+    .icon-button,
+    .filter-button {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.36),
+        0 10px 26px rgba(51, 89, 154, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .primary-button {
+      min-width: 116px;
+      min-height: 58px;
+      padding: 0 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(64, 137, 255, 0.96), rgba(36, 94, 221, 0.92));
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .primary-button:hover {
+      background: linear-gradient(135deg, rgba(70, 143, 255, 1), rgba(35, 88, 204, 0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 14px 30px rgba(36, 94, 221, 0.24);
+    }
+
+    .primary-button:disabled,
+    .ghost-button:disabled,
+    .icon-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      margin: 0 30px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+
+    .filters {
+      display: inline-grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      overflow: hidden;
+      min-width: min(100%, 360px);
+      padding: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .filter-button {
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .filter-button[aria-pressed="true"] {
+      background: rgba(255, 255, 255, 0.56);
+      color: var(--text);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 10px 24px rgba(52, 84, 147, 0.12);
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+    }
+
+    .count {
+      margin: 0;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .ghost-button {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.26);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .ghost-button:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .list-wrap {
+      padding: 24px 30px 30px;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 14px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      min-height: 88px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 24px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.36),
+        0 16px 34px rgba(52, 84, 147, 0.08);
+    }
+
+    .task-item.completed {
+      background: rgba(205, 255, 236, 0.18);
+    }
+
+    .check-wrap {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .task-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      border: 1.5px solid rgba(18, 48, 79, 0.26);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+    }
+
+    .task-checkbox::after {
+      content: "";
+      width: 7px;
+      height: 11px;
+      border-right: 2px solid transparent;
+      border-bottom: 2px solid transparent;
+      transform: rotate(45deg) translate(-1px, -1px);
+      transition: border-color 180ms ease;
+    }
+
+    .task-checkbox:checked {
+      border-color: rgba(16, 185, 129, 0.7);
+      background: linear-gradient(135deg, rgba(110, 231, 183, 0.94), rgba(16, 185, 129, 0.94));
+      box-shadow: 0 10px 22px rgba(16, 185, 129, 0.22);
+    }
+
+    .task-checkbox:checked::after {
+      border-color: #fff;
+    }
+
+    .task-checkbox:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 4px rgba(49, 119, 255, 0.18),
+        0 10px 22px rgba(16, 185, 129, 0.22);
+    }
+
+    .task-main {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-copy {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .task-topline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 12px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .task-item.completed .status-pill {
+      color: #0f8f66;
+      background: rgba(228, 255, 244, 0.72);
+    }
+
+    .task-text {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 1.08rem;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .task-item.completed .task-text {
+      color: rgba(15, 143, 102, 0.92);
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    .task-meta {
+      color: var(--muted-soft);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.28);
+      color: var(--text);
+    }
+
+    .icon-button.danger {
+      color: var(--danger);
+    }
+
+    .icon-button:hover {
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .empty-state {
+      display: grid;
+      gap: 10px;
+      place-items: center;
+      min-height: 240px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+    }
+
+    .empty-state h2,
+    .empty-state p {
+      margin: 0;
+    }
+
+    .empty-state h2 {
+      font-size: 1.28rem;
+      line-height: 1.4;
+    }
+
+    .empty-state p {
+      max-width: 30rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 860px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        justify-content: space-between;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px 12px 28px;
+      }
+
+      .hero,
+      .list-wrap {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .hero {
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      .toolbar {
+        margin-left: 16px;
+        margin-right: 16px;
+        padding: 14px;
+      }
+
+      .task-form,
+      .edit-row {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .task-item {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .task-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+
+      .primary-button {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 520px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .summary {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .count,
+      .ghost-button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="todo-app" aria-labelledby="todo-title">
+      <header class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Liquid Glass Productivity</span>
+          <h1 id="todo-title">Todo List</h1>
+          <p class="subtitle">จัดการงานที่ต้องทำ เพิ่ม แก้ไข ลบ ติดตามสถานะ และกรองรายการได้ในหน้าเดียว พร้อมหน้าตา glassmorphism แบบใส นุ่ม และใช้งานบนมือถือได้ดี</p>
+        </div>
+
+        <div class="hero-stats" aria-label="สรุปรายการ">
+          <div class="stat-pill">
+            <span class="stat-label">ทั้งหมด</span>
+            <span id="total-count" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">เสร็จแล้ว</span>
+            <span id="completed-count" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Storage</span>
+            <span class="stat-value">Local</span>
+          </div>
+        </div>
+
+        <form id="task-form" class="task-form" autocomplete="off">
+          <label class="sr-only" for="task-input">เพิ่มงานใหม่</label>
+          <input
+            id="task-input"
+            class="task-input"
+            name="task"
+            type="text"
+            maxlength="180"
+            placeholder="เพิ่มงานใหม่..."
+            required
+          >
+          <button class="primary-button" type="submit">เพิ่ม</button>
+        </form>
+      </header>
+
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="กรองรายการ">
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter-button" type="button" data-filter="active" aria-pressed="false">Active</button>
+          <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">Completed</button>
+        </div>
+
+        <div class="summary">
+          <p id="remaining-count" class="count">0 รายการที่ยังไม่เสร็จ</p>
+          <button id="clear-completed" class="ghost-button" type="button" disabled>ลบ Completed</button>
+        </div>
+      </div>
+
+      <div class="list-wrap">
+        <ul id="task-list" class="task-list" aria-live="polite"></ul>
+
+        <div id="empty-state" class="empty-state">
+          <h2>ยังไม่มีรายการ</h2>
+          <p>เริ่มพิมพ์งานแรกด้านบน แล้วใช้ตัวกรองเพื่อดูเฉพาะงานที่ต้องทำหรืองานที่เสร็จแล้ว</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "bad.todo.items.v1";
+
+      const taskForm = document.getElementById("task-form");
+      const taskInput = document.getElementById("task-input");
+      const taskList = document.getElementById("task-list");
+      const emptyState = document.getElementById("empty-state");
+      const remainingCount = document.getElementById("remaining-count");
+      const clearCompletedButton = document.getElementById("clear-completed");
+      const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      const totalCount = document.getElementById("total-count");
+      const completedCount = document.getElementById("completed-count");
+
+      let tasks = loadTasks();
+      let currentFilter = "all";
+      let editingId = null;
+
+      render();
+
+      taskForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = taskInput.value.trim();
+
+        if (!text) {
+          taskInput.focus();
+          return;
+        }
+
+        tasks.unshift({
+          id: createId(),
+          text,
+          completed: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+
+        taskForm.reset();
+        saveTasks();
+        render();
+        taskInput.focus();
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          currentFilter = button.dataset.filter;
+          render();
+        });
+      });
+
+      clearCompletedButton.addEventListener("click", () => {
+        tasks = tasks.filter((task) => !task.completed);
+        saveTasks();
+        render();
+      });
+
+      function loadTasks() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+
+          if (!Array.isArray(parsed)) {
+            return [];
+          }
+
+          return parsed
+            .filter((task) => task && typeof task.text === "string")
+            .map((task) => ({
+              id: String(task.id || createId()),
+              text: task.text.trim(),
+              completed: Boolean(task.completed),
+              createdAt: Number(task.createdAt) || Date.now(),
+              updatedAt: Number(task.updatedAt) || Date.now()
+            }))
+            .filter((task) => task.text.length > 0);
+        } catch (error) {
+          console.warn("Unable to read todo storage.", error);
+          return [];
+        }
+      }
+
+      function saveTasks() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      function createId() {
+        return window.crypto && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      function getVisibleTasks() {
+        if (currentFilter === "active") {
+          return tasks.filter((task) => !task.completed);
+        }
+
+        if (currentFilter === "completed") {
+          return tasks.filter((task) => task.completed);
+        }
+
+        return tasks;
+      }
+
+      function render() {
+        const visibleTasks = getVisibleTasks();
+        const activeCount = tasks.filter((task) => !task.completed).length;
+        const doneCount = tasks.filter((task) => task.completed).length;
+
+        taskList.innerHTML = "";
+        visibleTasks.forEach((task) => taskList.appendChild(createTaskElement(task)));
+
+        emptyState.hidden = visibleTasks.length > 0;
+        remainingCount.textContent = `${activeCount} รายการที่ยังไม่เสร็จ`;
+        clearCompletedButton.disabled = doneCount === 0;
+        totalCount.textContent = String(tasks.length);
+        completedCount.textContent = String(doneCount);
+
+        filterButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.filter === currentFilter));
+        });
+      }
+
+      function createTaskElement(task) {
+        const item = document.createElement("li");
+        item.className = `task-item${task.completed ? " completed" : ""}`;
+
+        const checkboxWrap = document.createElement("label");
+        checkboxWrap.className = "check-wrap";
+
+        const checkboxLabel = document.createElement("span");
+        checkboxLabel.className = "sr-only";
+        checkboxLabel.textContent = task.completed ? "ทำเครื่องหมายว่ายังไม่เสร็จ" : "ทำเครื่องหมายว่าเสร็จแล้ว";
+
+        const checkbox = document.createElement("input");
+        checkbox.className = "task-checkbox";
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.addEventListener("change", () => {
+          task.completed = checkbox.checked;
+          task.updatedAt = Date.now();
+          saveTasks();
+          render();
+        });
+
+        checkboxWrap.append(checkboxLabel, checkbox);
+
+        const main = document.createElement("div");
+        main.className = "task-main";
+
+        if (editingId === task.id) {
+          main.appendChild(createEditRow(task));
+        } else {
+          const copy = document.createElement("div");
+          copy.className = "task-copy";
+
+          const topline = document.createElement("div");
+          topline.className = "task-topline";
+
+          const status = document.createElement("span");
+          status.className = "status-pill";
+          status.textContent = task.completed ? "Completed" : "Active";
+
+          const meta = document.createElement("div");
+          meta.className = "task-meta";
+          meta.textContent = buildMetaText(task);
+
+          const text = document.createElement("p");
+          text.className = "task-text";
+          text.textContent = task.text;
+
+          topline.appendChild(status);
+          copy.append(topline, text, meta);
+          main.appendChild(copy);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editButton = createIconButton("แก้ไขรายการ", "edit");
+        editButton.addEventListener("click", () => {
+          editingId = task.id;
+          render();
+          const editInput = document.querySelector(`[data-edit-input="${cssEscape(task.id)}"]`);
+          if (editInput) {
+            editInput.focus();
+            editInput.select();
+          }
+        });
+
+        const deleteButton = createIconButton("ลบรายการ", "trash", true);
+        deleteButton.addEventListener("click", () => {
+          tasks = tasks.filter((candidate) => candidate.id !== task.id);
+          if (editingId === task.id) {
+            editingId = null;
+          }
+          saveTasks();
+          render();
+        });
+
+        actions.append(editButton, deleteButton);
+        item.append(checkboxWrap, main, actions);
+
+        return item;
+      }
+
+      function createEditRow(task) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "edit-row";
+
+        const input = document.createElement("input");
+        input.className = "edit-input";
+        input.type = "text";
+        input.maxLength = 180;
+        input.value = task.text;
+        input.dataset.editInput = task.id;
+        input.setAttribute("aria-label", "แก้ไขข้อความรายการ");
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            commitEdit(task, input.value);
+          }
+
+          if (event.key === "Escape") {
+            editingId = null;
+            render();
+          }
+        });
+
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "edit-actions";
+
+        const saveButton = document.createElement("button");
+        saveButton.className = "primary-button";
+        saveButton.type = "button";
+        saveButton.textContent = "บันทึก";
+        saveButton.addEventListener("click", () => commitEdit(task, input.value));
+
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "ghost-button";
+        cancelButton.type = "button";
+        cancelButton.textContent = "ยกเลิก";
+        cancelButton.addEventListener("click", () => {
+          editingId = null;
+          render();
+        });
+
+        actionWrap.append(saveButton, cancelButton);
+        wrapper.append(input, actionWrap);
+
+        return wrapper;
+      }
+
+      function commitEdit(task, nextText) {
+        const text = nextText.trim();
+
+        if (!text) {
+          return;
+        }
+
+        task.text = text;
+        task.updatedAt = Date.now();
+        editingId = null;
+        saveTasks();
+        render();
+      }
+
+      function buildMetaText(task) {
+        const createdLabel = `สร้าง ${formatDateTime(task.createdAt)}`;
+
+        if (task.updatedAt && Math.abs(task.updatedAt - task.createdAt) > 1000) {
+          return `${createdLabel} • แก้ไข ${formatDateTime(task.updatedAt)}`;
+        }
+
+        return createdLabel;
+      }
+
+      function formatDateTime(value) {
+        return new Intl.DateTimeFormat("th-TH", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(value));
+      }
+
+      function createIconButton(label, iconName, isDanger = false) {
+        const button = document.createElement("button");
+        button.className = `icon-button${isDanger ? " danger" : ""}`;
+        button.type = "button";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.appendChild(createIcon(iconName));
+        return button;
+      }
+
+      function createIcon(name) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("aria-hidden", "true");
+
+        if (name === "edit") {
+          appendSvgPath(svg, "M12 20h9");
+          appendSvgPath(svg, "M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z");
+        }
+
+        if (name === "trash") {
+          appendSvgPath(svg, "M3 6h18");
+          appendSvgPath(svg, "M8 6V4h8v2");
+          appendSvgPath(svg, "M19 6l-1 14H6L5 6");
+          appendSvgPath(svg, "M10 11v6");
+          appendSvgPath(svg, "M14 11v6");
+        }
+
+        return svg;
+      }
+
+      function appendSvgPath(svg, pathData) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathData);
+        svg.appendChild(path);
+      }
+
+      function cssEscape(value) {
+        if (window.CSS && CSS.escape) {
+          return CSS.escape(value);
+        }
+
+        return String(value).replace(/"/g, '\\"');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+สร้างเว็บ Todo List ด้วย HTML CSS JavaScript แบบไฟล์เดียว ไม่ใช้ framework ไม่ใช้ database เก็บข้อมูลด้วย localStorage เพิ่ม/แก้ไข/ลบ/ติ๊กเสร็จ/กรอง All Active Completed/ลบ Completed ทั้งหมดได้ หน้าตาสวยเรียบง่าย responsive ขอ code ทั้งหมดใน index.html แบบ copy แล้วรันได้ทันที

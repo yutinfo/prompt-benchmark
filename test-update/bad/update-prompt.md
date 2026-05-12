@@ -1,0 +1,1 @@
+ปรับ UI เว็บ Todo List เดิมให้เป็นแนว iOS 26 Liquid Glass / glassmorphism ใช้ HTML CSS JS ไฟล์เดียวเหมือนเดิม เก็บข้อมูล localStorage เหมือนเดิม ห้ามลบ feature เดิม เพิ่ม/แก้ไข/ลบ/toggle/filter/clear completed ต้องยังใช้ได้ ขอพื้นหลัง gradient blur glow, card กระจกใส, ปุ่มกระจก, input กระจก, responsive และส่ง code index.html เต็มแบบ copy ใช้ได้ทันที

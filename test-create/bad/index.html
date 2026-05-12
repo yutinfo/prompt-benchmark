@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f5f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #5b667a;
+      --border: #d8dfeb;
+      --primary: #2563eb;
+      --primary-strong: #1d4ed8;
+      --success: #15803d;
+      --danger: #dc2626;
+      --shadow: 0 24px 60px rgba(23, 32, 51, 0.12);
+      --radius-lg: 8px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(180deg, #fbfcfe 0%, var(--page) 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .page {
+      width: min(100%, 1040px);
+      margin: 0 auto;
+      padding: 48px 20px;
+    }
+
+    .todo-app {
+      overflow: hidden;
+      border: 1px solid rgba(216, 223, 235, 0.92);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      display: grid;
+      gap: 20px;
+      padding: 30px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 42rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    .task-input,
+    .edit-input {
+      width: 100%;
+      min-height: 54px;
+      padding: 0 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .task-input:focus,
+    .edit-input:focus {
+      border-color: rgba(37, 99, 235, 0.72);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+    }
+
+    .primary-button,
+    .ghost-button,
+    .icon-button,
+    .filter-button {
+      transition:
+        transform 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        opacity 160ms ease;
+    }
+
+    .primary-button:hover,
+    .ghost-button:hover,
+    .icon-button:hover,
+    .filter-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button {
+      min-width: 110px;
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: var(--radius-md);
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      background: var(--primary-strong);
+    }
+
+    .primary-button:disabled,
+    .ghost-button:disabled,
+    .icon-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 30px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .filters {
+      display: inline-grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      overflow: hidden;
+      min-width: min(100%, 420px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+    }
+
+    .filter-button {
+      min-height: 48px;
+      padding: 0 18px;
+      border-right: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .filter-button:last-child {
+      border-right: 0;
+    }
+
+    .filter-button[aria-pressed="true"] {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+    }
+
+    .count {
+      margin: 0;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .ghost-button {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .list-wrap {
+      padding: 0 30px 30px;
+      background: var(--surface);
+    }
+
+    .task-list {
+      display: grid;
+      gap: 12px;
+      padding: 24px 0 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      min-height: 78px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fff;
+    }
+
+    .check-wrap {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+    }
+
+    .task-checkbox {
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      accent-color: var(--success);
+      cursor: pointer;
+    }
+
+    .task-main {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-text {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 1.08rem;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .task-item.completed .task-text {
+      color: var(--success);
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    .task-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .icon-button.danger {
+      color: var(--danger);
+    }
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .empty-state {
+      display: grid;
+      gap: 8px;
+      place-items: center;
+      min-height: 220px;
+      margin-top: 24px;
+      padding: 24px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+      text-align: center;
+    }
+
+    .empty-state h2,
+    .empty-state p {
+      margin: 0;
+    }
+
+    .empty-state h2 {
+      font-size: 1.2rem;
+      line-height: 1.4;
+    }
+
+    .empty-state p {
+      max-width: 30rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 20px 14px;
+      }
+
+      .hero,
+      .toolbar,
+      .list-wrap {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .task-form,
+      .toolbar,
+      .edit-row {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .summary {
+        justify-content: space-between;
+      }
+
+      .task-item {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .task-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+
+      .primary-button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="todo-app" aria-labelledby="todo-title">
+      <header class="hero">
+        <div class="hero-copy">
+          <h1 id="todo-title">Todo List</h1>
+          <p class="subtitle">จัดการงานที่ต้องทำ เพิ่ม แก้ไข ลบ ติดตามสถานะ และกรองรายการได้ในหน้าเดียว</p>
+        </div>
+
+        <form id="task-form" class="task-form" autocomplete="off">
+          <label class="sr-only" for="task-input">เพิ่มงานใหม่</label>
+          <input
+            id="task-input"
+            class="task-input"
+            name="task"
+            type="text"
+            maxlength="180"
+            placeholder="เพิ่มงานใหม่..."
+            required
+          >
+          <button class="primary-button" type="submit">เพิ่ม</button>
+        </form>
+      </header>
+
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="กรองรายการ">
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter-button" type="button" data-filter="active" aria-pressed="false">Active</button>
+          <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">Completed</button>
+        </div>
+
+        <div class="summary">
+          <p id="remaining-count" class="count">0 รายการที่ยังไม่เสร็จ</p>
+          <button id="clear-completed" class="ghost-button" type="button" disabled>ลบ Completed</button>
+        </div>
+      </div>
+
+      <div class="list-wrap">
+        <ul id="task-list" class="task-list" aria-live="polite"></ul>
+
+        <div id="empty-state" class="empty-state">
+          <h2>ยังไม่มีรายการ</h2>
+          <p>เริ่มพิมพ์งานแรกด้านบน แล้วใช้ตัวกรองเพื่อดูเฉพาะงานที่ต้องทำหรืองานที่เสร็จแล้ว</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "bad.todo.items.v1";
+
+      const taskForm = document.getElementById("task-form");
+      const taskInput = document.getElementById("task-input");
+      const taskList = document.getElementById("task-list");
+      const emptyState = document.getElementById("empty-state");
+      const remainingCount = document.getElementById("remaining-count");
+      const clearCompletedButton = document.getElementById("clear-completed");
+      const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+
+      let tasks = loadTasks();
+      let currentFilter = "all";
+      let editingId = null;
+
+      render();
+
+      taskForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = taskInput.value.trim();
+
+        if (!text) {
+          taskInput.focus();
+          return;
+        }
+
+        tasks.unshift({
+          id: createId(),
+          text,
+          completed: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+
+        taskForm.reset();
+        saveTasks();
+        render();
+        taskInput.focus();
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          currentFilter = button.dataset.filter;
+          render();
+        });
+      });
+
+      clearCompletedButton.addEventListener("click", () => {
+        tasks = tasks.filter((task) => !task.completed);
+        saveTasks();
+        render();
+      });
+
+      function loadTasks() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+
+          if (!Array.isArray(parsed)) {
+            return [];
+          }
+
+          return parsed
+            .filter((task) => task && typeof task.text === "string")
+            .map((task) => ({
+              id: String(task.id || createId()),
+              text: task.text.trim(),
+              completed: Boolean(task.completed),
+              createdAt: Number(task.createdAt) || Date.now(),
+              updatedAt: Number(task.updatedAt) || Date.now()
+            }))
+            .filter((task) => task.text.length > 0);
+        } catch (error) {
+          console.warn("Unable to read todo storage.", error);
+          return [];
+        }
+      }
+
+      function saveTasks() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      function createId() {
+        return window.crypto && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      function getVisibleTasks() {
+        if (currentFilter === "active") {
+          return tasks.filter((task) => !task.completed);
+        }
+
+        if (currentFilter === "completed") {
+          return tasks.filter((task) => task.completed);
+        }
+
+        return tasks;
+      }
+
+      function render() {
+        const visibleTasks = getVisibleTasks();
+        const activeCount = tasks.filter((task) => !task.completed).length;
+        const completedCount = tasks.filter((task) => task.completed).length;
+
+        taskList.innerHTML = "";
+        visibleTasks.forEach((task) => taskList.appendChild(createTaskElement(task)));
+
+        emptyState.hidden = visibleTasks.length > 0;
+        remainingCount.textContent = `${activeCount} รายการที่ยังไม่เสร็จ`;
+        clearCompletedButton.disabled = completedCount === 0;
+
+        filterButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.filter === currentFilter));
+        });
+      }
+
+      function createTaskElement(task) {
+        const item = document.createElement("li");
+        item.className = `task-item${task.completed ? " completed" : ""}`;
+
+        const checkboxWrap = document.createElement("label");
+        checkboxWrap.className = "check-wrap";
+
+        const checkboxLabel = document.createElement("span");
+        checkboxLabel.className = "sr-only";
+        checkboxLabel.textContent = task.completed ? "ทำเครื่องหมายว่ายังไม่เสร็จ" : "ทำเครื่องหมายว่าเสร็จแล้ว";
+
+        const checkbox = document.createElement("input");
+        checkbox.className = "task-checkbox";
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.addEventListener("change", () => {
+          task.completed = checkbox.checked;
+          task.updatedAt = Date.now();
+          saveTasks();
+          render();
+        });
+
+        checkboxWrap.append(checkboxLabel, checkbox);
+
+        const main = document.createElement("div");
+        main.className = "task-main";
+
+        if (editingId === task.id) {
+          main.appendChild(createEditRow(task));
+        } else {
+          const text = document.createElement("p");
+          text.className = "task-text";
+          text.textContent = task.text;
+          main.appendChild(text);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editButton = createIconButton("แก้ไขรายการ", "edit");
+        editButton.addEventListener("click", () => {
+          editingId = task.id;
+          render();
+          const editInput = document.querySelector(`[data-edit-input="${cssEscape(task.id)}"]`);
+          if (editInput) {
+            editInput.focus();
+            editInput.select();
+          }
+        });
+
+        const deleteButton = createIconButton("ลบรายการ", "trash", true);
+        deleteButton.addEventListener("click", () => {
+          tasks = tasks.filter((candidate) => candidate.id !== task.id);
+          if (editingId === task.id) {
+            editingId = null;
+          }
+          saveTasks();
+          render();
+        });
+
+        actions.append(editButton, deleteButton);
+        item.append(checkboxWrap, main, actions);
+
+        return item;
+      }
+
+      function createEditRow(task) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "edit-row";
+
+        const input = document.createElement("input");
+        input.className = "edit-input";
+        input.type = "text";
+        input.maxLength = 180;
+        input.value = task.text;
+        input.dataset.editInput = task.id;
+        input.setAttribute("aria-label", "แก้ไขข้อความรายการ");
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            commitEdit(task, input.value);
+          }
+
+          if (event.key === "Escape") {
+            editingId = null;
+            render();
+          }
+        });
+
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "edit-actions";
+
+        const saveButton = document.createElement("button");
+        saveButton.className = "primary-button";
+        saveButton.type = "button";
+        saveButton.textContent = "บันทึก";
+        saveButton.addEventListener("click", () => commitEdit(task, input.value));
+
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "ghost-button";
+        cancelButton.type = "button";
+        cancelButton.textContent = "ยกเลิก";
+        cancelButton.addEventListener("click", () => {
+          editingId = null;
+          render();
+        });
+
+        actionWrap.append(saveButton, cancelButton);
+        wrapper.append(input, actionWrap);
+
+        return wrapper;
+      }
+
+      function commitEdit(task, nextText) {
+        const text = nextText.trim();
+
+        if (!text) {
+          return;
+        }
+
+        task.text = text;
+        task.updatedAt = Date.now();
+        editingId = null;
+        saveTasks();
+        render();
+      }
+
+      function createIconButton(label, iconName, isDanger = false) {
+        const button = document.createElement("button");
+        button.className = `icon-button${isDanger ? " danger" : ""}`;
+        button.type = "button";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.appendChild(createIcon(iconName));
+        return button;
+      }
+
+      function createIcon(name) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("aria-hidden", "true");
+
+        if (name === "edit") {
+          appendSvgPath(svg, "M12 20h9");
+          appendSvgPath(svg, "M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z");
+        }
+
+        if (name === "trash") {
+          appendSvgPath(svg, "M3 6h18");
+          appendSvgPath(svg, "M8 6V4h8v2");
+          appendSvgPath(svg, "M19 6l-1 14H6L5 6");
+          appendSvgPath(svg, "M10 11v6");
+          appendSvgPath(svg, "M14 11v6");
+        }
+
+        return svg;
+      }
+
+      function appendSvgPath(svg, pathData) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathData);
+        svg.appendChild(path);
+      }
+
+      function cssEscape(value) {
+        if (window.CSS && CSS.escape) {
+          return CSS.escape(value);
+        }
+
+        return String(value).replace(/"/g, '\\"');
+      }
+    })();
+  </script>
+</body>
+</html>
